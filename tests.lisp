@@ -57,8 +57,8 @@
 (test floating-point
   "Test encoding of single and double precision floating point
 numbers."
-  #+sbcl (is (equalp #(#xCA #x3F #x80 #x00 #x00) (mpk:encode 1.0s0)))
-  #+sbcl (is (equalp #(#xCA #xBF #x80 #x00 #x00) (mpk:encode -1.0s0)))
+  #+(or sbcl dotcl) (is (equalp #(#xCA #x3F #x80 #x00 #x00) (mpk:encode 1.0s0)))
+  #+(or sbcl dotcl) (is (equalp #(#xCA #xBF #x80 #x00 #x00) (mpk:encode -1.0s0)))
   (is (equalp #(#xCB #x3F #xF0 #x00 #x00 #x00 #x00 #x00 #x00) (mpk:encode 1.0d0)))
   (is (equalp #(#xCB #xBF #xF0 #x00 #x00 #x00 #x00 #x00 #x00) (mpk:encode -1.0d0))))
 
@@ -170,12 +170,12 @@ encode properly."
 
 (test decoding-floats
   "Test that (equalp (decode (encode data)) data) for floats."
-  #+ (or sbcl ccl) (is (eql  100d0 (mpk:decode (mpk:encode  100d0))))
-  #+ (or sbcl ccl) (is (eql -100d0 (mpk:decode (mpk:encode -100d0))))
-  #+ (or sbcl ccl) (is (eql -1.2345678901234567e19
+  #+ (or sbcl ccl dotcl) (is (eql  100d0 (mpk:decode (mpk:encode  100d0))))
+  #+ (or sbcl ccl dotcl) (is (eql -100d0 (mpk:decode (mpk:encode -100d0))))
+  #+ (or sbcl ccl dotcl) (is (eql -1.2345678901234567e19
                             (mpk:decode (mpk:encode -1.2345678901234567e19))))
-  #+ sbcl (is (eql  102s0 (mpk:decode (mpk:encode  102s0))))
-  #+ sbcl (is (eql -102s0 (mpk:decode (mpk:encode -102s0)))))
+  #+ (or sbcl dotcl) (is (eql  102s0 (mpk:decode (mpk:encode  102s0))))
+  #+ (or sbcl dotcl) (is (eql -102s0 (mpk:decode (mpk:encode -102s0)))))
 
 (test decoding-strings
   "Test that (equalp (decode (encode data)) data) holds for strings."

@@ -217,10 +217,23 @@
               (T
                (error "~s is not a float" data))))
 
+#+dotcl (defun dotcl-encode-float (data stream &optional drop-prefix)
+          (cond ((equal (type-of data) 'single-float)
+                 (unless drop-prefix
+                   (write-byte #xca stream))
+                 (store-big-endian (dotcl-float:single-float-bits data) stream 4))
+                ((equal (type-of data) 'double-float)
+                 (unless drop-prefix
+                   (write-byte #xcb stream))
+                 (store-big-endian (dotcl-float:double-float-bits data) stream 8))
+                (T
+                 (error "~s is not a float" data))))
+
 (defun encode-float (data stream &optional drop-prefix)
   (or #+sbcl (sbcl-encode-float data stream drop-prefix)
       #+ccl (ccl-encode-double-float data stream drop-prefix)
-      #-(or sbcl ccl) (error "No floating point support yet.")))
+      #+dotcl (dotcl-encode-float data stream drop-prefix)
+      #-(or sbcl ccl dotcl) (error "No floating point support yet.")))
 
 (defun encode-each (data stream)
   (cond ((hash-table-p data)
@@ -382,13 +395,15 @@
            (if *use-false* :false nil))
           ((= #xca byte)
            (or #+sbcl (sb-kernel:make-single-float (ub32->sb32 (load-big-endian stream 4)))
-               #-(or sbcl) (error "No floating point support yet.")))
+               #+dotcl (dotcl-float:bits-single-float (load-big-endian stream 4))
+               #-(or sbcl dotcl) (error "No floating point support yet.")))
           ((= #xcb byte)
            (or #+sbcl (sb-kernel:make-double-float (ub32->sb32 (load-big-endian stream 4))
                                                    (load-big-endian stream 4))
                #+ccl (ccl::double-float-from-bits (load-big-endian stream 4)
                                                   (load-big-endian stream 4))
-               #-(or sbcl ccl) (error "No floating point support yet.")))
+               #+dotcl (dotcl-float:bits-double-float (load-big-endian stream 8))
+               #-(or sbcl ccl dotcl) (error "No floating point support yet.")))
           ((= 5 (ldb (byte 3 5) byte))
            (decode-string (ldb (byte 5 0) byte) stream))
           ((= #xd9 byte)

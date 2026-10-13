@@ -22,6 +22,10 @@
 
 ;;;; package.lisp
 
+#+dotcl
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (require "dotcl-float"))
+
 ;; This package is used to make 'MESSAGEPACK:ID available
 ;; without having it imported into other packages.
 (defpackage #:messagepack-sym
